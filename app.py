@@ -2,18 +2,17 @@ import streamlit as st
 from pdf2image import convert_from_bytes
 from PIL import Image
 import io
-from googletrans import Translator
+from deep_translator import GoogleTranslator
 import pytesseract
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
-# No local path needed – packages.txt handles tesseract & poppler
-
 st.set_page_config(page_title="My Free AI Tools - Faizan", layout="wide")
-st.title("My Free AI Tools by Faizan")
-st.markdown("100% Free AI Tools: Translate Books/PDFs fast, Convert PDF to Images, Images to PDF, Extract Text (OCR). Made in Jalgaon!")
 
-translator = Translator()
+st.title("My Free AI Tools by Faizan")
+st.markdown("100% Free AI Tools: Translate Books/PDFs fast, Convert PDF to Images, Images to PDF, Extract Text (OCR). Made in Jalgaon! 🚀")
+
+translator = GoogleTranslator(source='auto')
 
 tab1, tab2, tab3, tab4 = st.tabs(["Translate Book/PDF", "PDF → Image", "Image/JPG → PDF", "OCR Text Extract"])
 
@@ -30,11 +29,10 @@ with tab1:
                     text += pytesseract.image_to_string(img) + "\n"
             else:
                 text = uploaded_file.getvalue().decode("utf-8", errors="ignore")
-            # Translate in chunks to avoid limits
             chunks = [text[i:i+4500] for i in range(0, len(text), 4500)]
             translated = ""
             for chunk in chunks:
-                translated += translator.translate(chunk, dest=target_lang).text
+                translated += translator.translate(chunk, target=target_lang)
         st.text_area("Translated Text", translated, height=400)
         st.download_button("Download Translated TXT", translated, file_name="translated_book.txt")
 
@@ -71,9 +69,35 @@ with tab4:
             text_ex = ""
             if ocr_file.type == "application/pdf":
                 imgs = convert_from_bytes(ocr_file.getvalue())
-                text_ex = pytesseract.image_to_string(imgs[0])  # First page for demo
+                text_ex = pytesseract.image_to_string(imgs[0])  # First page
             else:
                 text_ex = pytesseract.image_to_string(Image.open(ocr_file))
         st.text_area("Extracted Text", text_ex, height=300)
+
+# AI Agent - Chatbot (sabse neeche)
+st.markdown("---")
+st.header("AI Agent - Mujhse Poochho!")
+
+if 'chat_messages' not in st.session_state:
+    st.session_state.chat_messages = []
+
+prompt = st.chat_input("Yahan type karo (jaise 'PDF convert kaise karun?' ya 'Book translate karna hai')")
+if prompt:
+    st.session_state.chat_messages.append({"role": "user", "content": prompt})
+    
+    if "pdf" in prompt.lower() or "convert" in prompt.lower():
+        response = "PDF convert ke liye 'PDF → Image' ya 'Image/JPG → PDF' tab use karo. File upload kar aur button daba! 😊"
+    elif "translate" in prompt.lower() or "book" in prompt.lower():
+        response = "Book translate ke liye 'Translate Book/PDF' tab mein file daal, language choose kar aur Translate Now daba."
+    elif "ocr" in prompt.lower() or "text" in prompt.lower():
+        response = "Text extract karne ke liye 'OCR Text Extract' tab mein image/PDF upload kar."
+    else:
+        response = f"AI Agent: {prompt} pe soch raha hoon... Tools try karo ya detail batao! 🚀"
+    
+    st.session_state.chat_messages.append({"role": "assistant", "content": response})
+
+for msg in st.session_state.chat_messages:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
 
 st.markdown("© Faizan 2026 | Free forever | Powered by Streamlit & Open Tools")

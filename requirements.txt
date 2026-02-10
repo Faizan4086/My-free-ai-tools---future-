@@ -1,6 +1,6 @@
 streamlit
 pdf2image
 pillow
-googletrans==3.1.0a0   # yeh stable aur working version hai Streamlit Cloud pe
+googletrans==3.1.0a0
 pytesseract
 reportlab
